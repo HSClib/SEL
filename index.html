@@ -16,6 +16,11 @@
             --text-light: #666;
             --bg-body: #F0F4F8;
             --bg-sidebar: #F9FAFC;
+
+            /* 館藏分類色系 (首頁精簡版用) */
+            --color-paper: #5D9CEC;
+            --color-dvd: #967ADC;
+            --color-online: #E9573F;
         }
 
         * { box-sizing: border-box; }
@@ -95,7 +100,8 @@
         /* --- 4. 主要內容區 --- */
         main.main-content {
             margin-top: var(--header-height); margin-left: var(--sidebar-width);
-            padding: 40px; width: 100%;
+            padding: 30px; /* 縮小邊距 */
+            width: 100%; max-width: 1500px; /* 放寬最大寬度以容納6欄 */
         }
 
         h2 {
@@ -136,49 +142,90 @@
             font-size: 1.05rem; color: #555; margin-bottom: 30px; line-height: 1.6; padding: 0 10px;
         }
 
-        /* --- 電子書區塊 (首頁微縮版) --- */
-        .ebook-grid-mini {
+        /* --- 電子書區塊 (首頁微縮版 - 5欄) --- */
+        .ebook-grid-mini-5 {
             display: grid;
             gap: 15px; 
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         }
-        @media (min-width: 992px) { 
-            .ebook-grid-mini { grid-template-columns: repeat(5, 1fr); } 
-        }
+        @media (min-width: 1200px) { .ebook-grid-mini-5 { grid-template-columns: repeat(5, 1fr); } }
 
+        /* --- 館藏區塊 (首頁微縮版 - 6欄) --- */
+        .ebook-grid-mini-6 {
+            display: grid;
+            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        }
+        @media (min-width: 1200px) { .ebook-grid-mini-6 { grid-template-columns: repeat(6, 1fr); } }
+
+        /* 共用卡片樣式 (電子書 & 館藏) */
         .ebook-card-mini {
             background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             padding: 10px; text-align: center; border: 1px solid #eee;
             transition: transform 0.2s; display: flex; flex-direction: column; align-items: center;
+            height: 100%;
         }
         .ebook-card-mini:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
         
         .ebook-cover-mini {
             display: block; width: 100%; margin-bottom: 8px;
             border-radius: 4px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            max-width: 120px;
+            max-width: 120px; /* 限制封面最大寬度 */
+            height: 170px; /* 固定封面高度，確保對齊 */
+            display: flex; align-items: center; justify-content: center;
+            background-color: #f9f9f9;
         }
-        .ebook-cover-mini img { width: 100%; height: auto; display: block; }
+        .ebook-cover-mini img { 
+            width: 100%; height: 100%; 
+            object-fit: contain; /* 確保圖片完整顯示不變形 */
+        }
         
         .ebook-title-mini {
             font-size: 0.85rem; 
-            font-weight: bold; color: #333; margin-bottom: 8px;
+            font-weight: bold; color: #333; margin-bottom: 5px;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-            line-height: 1.3; height: 2.6em; 
+            line-height: 1.3; height: 2.6em; /* 固定高度保持整齊 */
+            /* flex-grow: 1; */ /* 移除 flex-grow，改由下方內容撐開 */
         }
         .ebook-title-mini a { text-decoration: none; color: #333; }
         .ebook-title-mini a:hover { color: var(--primary-color); }
 
+        /* 新增：館藏詳細資訊樣式 */
+        .lib-meta-mini {
+            font-size: 0.75rem; 
+            color: #777; 
+            margin-bottom: 8px; 
+            background: #f8f9fa; 
+            padding: 4px; 
+            border-radius: 4px;
+            width: 100%;
+            text-align: center;
+            line-height: 1.4;
+            flex-grow: 1; /* 讓資訊區塊填滿空間 */
+        }
+
+        /* 按鈕樣式 */
         .btn-read-mini {
-            display: block; width: 100%;
+            display: block;
+            width: 100%;
             background-color: var(--primary-color); 
-            color: white; text-decoration: none;
-            padding: 6px 0; border-radius: 15px;
-            font-size: 0.8rem; font-weight: bold;
-            margin-top: auto; transition: background-color 0.2s;
-            border: none;
+            color: white;
+            text-decoration: none;
+            padding: 6px 0; /* 稍微縮小高度 */
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: auto; /* 將按鈕推到底部 */
+            transition: background-color 0.2s;
+            border: none; /* 移除邊框 */
         }
         .btn-read-mini:hover { background-color: var(--primary-dark); color: #fff; }
+
+        /* 館藏區塊特定顏色按鈕 */
+        .btn-dvd-mini { background-color: var(--color-dvd); }
+        .btn-online-mini { background-color: var(--color-online); }
+        .btn-dvd-mini:hover { opacity: 0.8; }
+        .btn-online-mini:hover { opacity: 0.8; }
 
 
         /* --- 6. 影音區塊 --- */
@@ -288,6 +335,7 @@
                 <li><a href="sel-videos.html"><i class="fa-solid fa-play-circle"></i> 精選影音</a></li>
                 <li><a href="sel-resources.html"><i class="fa-solid fa-link"></i> 線上資源</a></li>
                 <li><a href="sel-ebooks.html"><i class="fa-solid fa-book"></i> 電子書推薦</a></li>
+                <li><a href="sel-library.html"><i class="fa-solid fa-book-bookmark"></i> 圖書館藏資源</a></li>
             </ul>
         </div>
 
@@ -363,64 +411,38 @@
 
         <section id="ebooks">
             <h2><i class="fa-solid fa-book-open" style="color:var(--primary-color)"></i> SEL 主題電子書</h2>
-            <div class="ebook-grid-mini">
+            <div class="ebook-grid-mini-5">
                 <div class="ebook-card-mini">
-                    <a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank" class="ebook-cover-mini">
-                        <img src="book1.jpg" alt="只是快撐不下去">
-                    </a>
-                    <div class="ebook-title-mini">
-                        <a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank">只是快撐不下去</a>
-                    </div>
-                    <a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank" class="btn-read-mini">
-                        <i class="fa-solid fa-book-reader"></i> 立即借閱
-                    </a>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank" class="ebook-cover-mini"><img src="book1.jpg" alt="只是快撐不下去"></a>
+                    <div class="ebook-title-mini"><a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank">只是快撐不下去</a></div>
+                    <div class="lib-meta-mini" style="visibility:hidden;">placeholder</div>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank" class="btn-read-mini">立即借閱</a>
                 </div>
                 <div class="ebook-card-mini">
-                    <a href="https://reading.udn.com/udnlib/hsc/B/244903" target="_blank" class="ebook-cover-mini">
-                        <img src="book2.jpg" alt="別動不動就自責">
-                    </a>
-                    <div class="ebook-title-mini">
-                        <a href="https://reading.udn.com/udnlib/hsc/B/244903" target="_blank">別動不動就自責</a>
-                    </div>
-                    <a href="https://reading.udn.com/udnlib/hsc/B/244903" target="_blank" class="btn-read-mini">
-                        <i class="fa-solid fa-book-reader"></i> 立即借閱
-                    </a>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/244903" target="_blank" class="ebook-cover-mini"><img src="book2.jpg" alt="別動不動就自責"></a>
+                    <div class="ebook-title-mini"><a href="https://reading.udn.com/udnlib/hsc/B/244903" target="_blank">別動不動就自責</a></div>
+                    <div class="lib-meta-mini" style="visibility:hidden;">placeholder</div>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/244903" target="_blank" class="btn-read-mini">立即借閱</a>
                 </div>
                 <div class="ebook-card-mini">
-                    <a href="https://reading.udn.com/udnlib/hsc/B/244900" target="_blank" class="ebook-cover-mini">
-                        <img src="book3.jpg" alt="林林小獸亂入抱緊處理">
-                    </a>
-                    <div class="ebook-title-mini">
-                        <a href="https://reading.udn.com/udnlib/hsc/B/244900" target="_blank">林林小獸亂入抱緊處理</a>
-                    </div>
-                    <a href="https://reading.udn.com/udnlib/hsc/B/244900" target="_blank" class="btn-read-mini">
-                        <i class="fa-solid fa-book-reader"></i> 立即借閱
-                    </a>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/244900" target="_blank" class="ebook-cover-mini"><img src="book3.jpg" alt="林林小獸亂入抱緊處理"></a>
+                    <div class="ebook-title-mini"><a href="https://reading.udn.com/udnlib/hsc/B/244900" target="_blank">林林小獸亂入抱緊處理</a></div>
+                    <div class="lib-meta-mini" style="visibility:hidden;">placeholder</div>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/244900" target="_blank" class="btn-read-mini">立即借閱</a>
                 </div>
                 <div class="ebook-card-mini">
-                    <a href="https://reading.udn.com/udnlib/hsc/B/243838" target="_blank" class="ebook-cover-mini">
-                        <img src="book4.jpg" alt="練習更快樂">
-                    </a>
-                    <div class="ebook-title-mini">
-                        <a href="https://reading.udn.com/udnlib/hsc/B/243838" target="_blank">練習更快樂</a>
-                    </div>
-                    <a href="https://reading.udn.com/udnlib/hsc/B/243838" target="_blank" class="btn-read-mini">
-                        <i class="fa-solid fa-book-reader"></i> 立即借閱
-                    </a>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/243838" target="_blank" class="ebook-cover-mini"><img src="book4.jpg" alt="練習更快樂"></a>
+                    <div class="ebook-title-mini"><a href="https://reading.udn.com/udnlib/hsc/B/243838" target="_blank">練習更快樂</a></div>
+                    <div class="lib-meta-mini" style="visibility:hidden;">placeholder</div>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/243838" target="_blank" class="btn-read-mini">立即借閱</a>
                 </div>
                 <div class="ebook-card-mini">
-                    <a href="https://reading.udn.com/udnlib/hsc/B/241015" target="_blank" class="ebook-cover-mini">
-                        <img src="book5.jpg" alt="存在的勇氣">
-                    </a>
-                    <div class="ebook-title-mini">
-                        <a href="https://reading.udn.com/udnlib/hsc/B/241015" target="_blank">存在的勇氣</a>
-                    </div>
-                    <a href="https://reading.udn.com/udnlib/hsc/B/241015" target="_blank" class="btn-read-mini">
-                        <i class="fa-solid fa-book-reader"></i> 立即借閱
-                    </a>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/241015" target="_blank" class="ebook-cover-mini"><img src="book5.jpg" alt="存在的勇氣"></a>
+                    <div class="ebook-title-mini"><a href="https://reading.udn.com/udnlib/hsc/B/241015" target="_blank">存在的勇氣</a></div>
+                    <div class="lib-meta-mini" style="visibility:hidden;">placeholder</div>
+                    <a href="https://reading.udn.com/udnlib/hsc/B/241015" target="_blank" class="btn-read-mini">立即借閱</a>
                 </div>
             </div>
-            
             <div style="text-align:right; margin-top:25px;">
                 <a href="sel-ebooks.html" style="display:inline-block; padding:8px 25px; border:1px solid var(--primary-color); color:var(--primary-color); text-decoration:none; border-radius:25px; transition:0.3s; font-size:0.9rem;">
                     查看更多電子書 <i class="fa-solid fa-arrow-right"></i>
@@ -428,8 +450,99 @@
             </div>
         </section>
 
+        <section id="library">
+            <h2><i class="fa-solid fa-book-bookmark" style="color:var(--primary-color)"></i> SEL 主題館藏精選</h2>
+            <div class="ebook-grid-mini-6">
+                
+                <div class="ebook-card-mini" style="border-top-color: var(--color-paper);">
+                    <a href="http://163.25.34.60:8080/toread/opac?q=7%E9%80%B1%E5%9C%93%E5%A4%A2%E7%AD%86%E8%A8%98" target="_blank" class="ebook-cover-mini">
+                        <img src="paper1.jpg" alt="7週圓夢筆記">
+                    </a>
+                    <div class="ebook-title-mini">
+                        <a href="http://163.25.34.60:8080/toread/opac?q=7%E9%80%B1%E5%9C%93%E5%A4%A2%E7%AD%86%E8%A8%98" target="_blank">7週圓夢筆記</a>
+                    </div>
+                    <div class="lib-meta-mini">
+                        索書號: 192.1022 8373<br>條碼號: A088699
+                    </div>
+                    <a href="http://163.25.34.60:8080/toread/opac?q=7%E9%80%B1%E5%9C%93%E5%A4%A2%E7%AD%86%E8%A8%98" target="_blank" class="btn-read-mini">查看館藏</a>
+                </div>
+
+                <div class="ebook-card-mini" style="border-top-color: var(--color-paper);">
+                    <a href="http://163.25.34.60:8080/toread/opac/search;jsessionid=4A016BE3EF3E5CF3BFC738FD22E0BC7E?q=%E4%B8%89%E9%9A%8E%E6%AE%B5%E5%BF%83%E7%90%86%E9%98%B2%E7%81%BD%E9%AB%94%E7%B3%BB&max=&view=CONTENT&level=all&material_type=all&location=" target="_blank" class="ebook-cover-mini">
+                        <img src="paper2.jpg" alt="三階段心理防災體系">
+                    </a>
+                    <div class="ebook-title-mini">
+                        <a href="http://163.25.34.60:8080/toread/opac/search;jsessionid=4A016BE3EF3E5CF3BFC738FD22E0BC7E?q=%E4%B8%89%E9%9A%8E%E6%AE%B5%E5%BF%83%E7%90%86%E9%98%B2%E7%81%BD%E9%AB%94%E7%B3%BB&max=&view=CONTENT&level=all&material_type=all&location=" target="_blank">三階段心理防災體系</a>
+                    </div>
+                    <div class="lib-meta-mini">
+                        索書號: 178.8 8847<br>條碼號: A091716
+                    </div>
+                    <a href="http://163.25.34.60:8080/toread/opac/search;jsessionid=4A016BE3EF3E5CF3BFC738FD22E0BC7E?q=%E4%B8%89%E9%9A%8E%E6%AE%B5%E5%BF%83%E7%90%86%E9%98%B2%E7%81%BD%E9%AB%94%E7%B3%BB&max=&view=CONTENT&level=all&material_type=all&location=" target="_blank" class="btn-read-mini">查看館藏</a>
+                </div>
+
+                <div class="ebook-card-mini" style="border-top-color: var(--color-dvd);">
+                    <a href="http://163.25.34.60:8080/toread/opac/search?q=V004162&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="ebook-cover-mini">
+                        <img src="dvd1.jpg" alt="情緒密碼">
+                    </a>
+                    <div class="ebook-title-mini">
+                        <a href="http://163.25.34.60:8080/toread/opac/search?q=V004162&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank">情緒密碼</a>
+                    </div>
+                    <div class="lib-meta-mini">
+                        索書號: 176.5 8352<br>條碼號: V004162...
+                    </div>
+                    <a href="http://163.25.34.60:8080/toread/opac/search?q=V004162&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-read-mini btn-dvd-mini">查看館藏</a>
+                </div>
+
+                <div class="ebook-card-mini" style="border-top-color: var(--color-dvd);">
+                    <a href="http://163.25.34.60:8080/toread/opac/search?q=V009231&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="ebook-cover-mini">
+                        <img src="dvd2.jpg" alt="情緒的奧妙">
+                    </a>
+                    <div class="ebook-title-mini">
+                        <a href="http://163.25.34.60:8080/toread/opac/search?q=V009231&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank">情緒的奧妙</a>
+                    </div>
+                    <div class="lib-meta-mini">
+                        索書號: 176.52 844<br>條碼號: V009231
+                    </div>
+                    <a href="http://163.25.34.60:8080/toread/opac/search?q=V009231&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-read-mini btn-dvd-mini">查看館藏</a>
+                </div>
+
+                <div class="ebook-card-mini" style="border-top-color: var(--color-online);">
+                    <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/d8cec786-b7e7-4751-ada9-215dfb8e7f85" target="_blank" class="ebook-cover-mini">
+                        <img src="online1.jpg" alt="亞斯小子">
+                    </a>
+                    <div class="ebook-title-mini">
+                        <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/d8cec786-b7e7-4751-ada9-215dfb8e7f85" target="_blank">亞斯小子</a>
+                    </div>
+                    <div class="lib-meta-mini">
+                        來源: 教室電影公播大平台
+                    </div>
+                    <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/d8cec786-b7e7-4751-ada9-215dfb8e7f85" target="_blank" class="btn-read-mini btn-online-mini">前往觀看</a>
+                </div>
+
+                <div class="ebook-card-mini" style="border-top-color: var(--color-online);">
+                    <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/5eff3be4-41af-40ba-8024-e38e03bb23fd" target="_blank" class="ebook-cover-mini">
+                        <img src="online2.jpg" alt="蝦米小白鯨">
+                    </a>
+                    <div class="ebook-title-mini">
+                        <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/5eff3be4-41af-40ba-8024-e38e03bb23fd" target="_blank">蝦米小白鯨</a>
+                    </div>
+                    <div class="lib-meta-mini">
+                        來源: 教室電影公播大平台
+                    </div>
+                    <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/5eff3be4-41af-40ba-8024-e38e03bb23fd" target="_blank" class="btn-read-mini btn-online-mini">前往觀看</a>
+                </div>
+
+            </div>
+            
+            <div style="text-align:right; margin-top:25px;">
+                <a href="sel-library.html" style="display:inline-block; padding:8px 25px; border:1px solid var(--primary-color); color:var(--primary-color); text-decoration:none; border-radius:25px; transition:0.3s; font-size:0.9rem;">
+                    查看更多館藏 <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </section>
+
         <section id="videos">
-            <h2><i class="fa-solid fa-video" style="color:var(--primary-color)"></i> 精選影音</h2>
+            <h2><i class="fa-solid fa-video" style="color:var(--primary-color)"></i> 精選影音館藏</h2>
             <div class="video-grid">
                 <div class="vod-card">
                     <div class="vod-wrapper"><iframe src="https://www.youtube.com/embed/NkyiPOAohLc?start=84" allowfullscreen></iframe></div>
