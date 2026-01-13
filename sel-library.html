@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖書館藏資源 | 新生醫專圖書館</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- 全站統一風格 --- */
+        :root {
+            --header-height: 64px;
+            --sidebar-width: 250px;
+            --primary-color: #5D9CEC;   /* 天空藍 */
+            --primary-dark: #4A89DC;    /* 深藍 */
+            --text-main: #333;
+            --bg-body: #F0F4F8;
+            --bg-sidebar: #F9FAFC;
+            /* 分類色系 */
+            --color-paper: #5D9CEC;     /* 水藍色 */
+            --color-dvd: #967ADC;       /* DVD - 紫 */
+            --color-online: #E9573F;    /* 線上 - 紅 */
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Helvetica Neue", Helvetica, "PingFang TC", sans-serif;
+            background-color: var(--bg-body); color: var(--text-main);
+            margin: 0; display: flex; min-height: 100vh;
+        }
+
+        /* 頂部導覽 */
+        header.top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
+            background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+        .navbar-brand { text-decoration: none; display: flex; align-items: center; gap: 12px; }
+        .brand-logo { height: 45px; width: auto; }
+        .brand-text { font-size: 1.25rem; font-weight: bold; color: var(--text-main); white-space: nowrap; }
+        .navbar-links a { text-decoration: none; color: #777; margin-left: 20px; font-size: 0.9rem; font-weight: 500; transition: 0.3s; }
+        .navbar-links a:hover { color: var(--primary-color); }
+
+        /* 左側選單 */
+        aside.sidebar {
+            position: fixed; top: var(--header-height); left: 0;
+            width: var(--sidebar-width); height: calc(100vh - var(--header-height));
+            background: var(--bg-sidebar); border-right: 1px solid #e1e8ed;
+            padding: 20px; overflow-y: auto; z-index: 900;
+        }
+        .sidebar-block { background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #eee; padding: 15px; margin-bottom: 20px; }
+        .block-title { font-size: 1rem; font-weight: bold; color: #2c3e50; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+        .sidebar-menu li { border-bottom: 1px dashed #eee; }
+        .sidebar-menu li:last-child { border-bottom: none; }
+        .sidebar-menu a { display: flex; align-items: center; padding: 10px 5px; text-decoration: none; color: #555; font-size: 0.95rem; transition: all 0.2s; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { color: var(--primary-color); padding-left: 8px; font-weight: bold; }
+        .sidebar-menu i { width: 20px; text-align: center; margin-right: 8px; }
+        .news-list { list-style: none; padding: 0; margin: 0; }
+        .news-item { margin-bottom: 15px; } .news-date { font-size: 0.8rem; color: #999; display: block; margin-bottom: 3px; }
+        .news-title { font-size: 0.95rem; color: #333; line-height: 1.4; display: block; text-decoration: none; }
+
+        /* 主要內容 */
+        main.main-content {
+            margin-top: var(--header-height); margin-left: var(--sidebar-width);
+            padding: 30px; /* 縮小邊距 */
+            width: 100%; max-width: 1500px; /* 放寬最大寬度以容納6欄 */
+        }
+        .breadcrumb { font-size: 0.9rem; color: #888; margin-bottom: 20px; }
+        .page-header { margin-bottom: 30px; border-bottom: 1px solid #e1e8ed; padding-bottom: 15px; }
+        .page-header h1 { margin: 0; font-size: 1.8rem; color: #2c3e50; }
+        
+        /* 區塊標題 */
+        .section-title { font-size: 1.4rem; margin: 40px 0 20px 0; padding-left: 15px; border-left: 5px solid #ccc; color: #444; display: flex; align-items: center; gap: 10px; }
+        .title-paper { border-left-color: var(--color-paper); color: var(--color-paper); }
+        .title-dvd { border-left-color: var(--color-dvd); color: var(--color-dvd); }
+        .title-online { border-left-color: var(--color-online); color: var(--color-online); }
+
+        /* 網格與卡片 (調整為6欄且更緊湊) */
+        .lib-grid { 
+            display: grid; 
+            gap: 15px; /* 間距再縮小 */
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* 最小寬度由 180px -> 160px */
+        }
+        @media (min-width: 1400px) { .lib-grid { grid-template-columns: repeat(6, 1fr); } } /* 大螢幕顯示6欄 */
+
+        .lib-card {
+            background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 10px; /* 內距縮小 */
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            transition: transform 0.3s; border: 1px solid #eee; height: 100%;
+            border-top: 3px solid #ddd;
+        }
+        .lib-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+
+        /* 封面圖樣式修正：完整顯示不裁切 */
+        .lib-cover-link { 
+            display: block; width: 100%; margin-bottom: 8px; 
+            overflow: hidden; border-radius: 4px; 
+            height: 220px; /* 高度稍微縮小配合整體 */
+            display: flex; justify-content: center; align-items: center; 
+            background: #fff; /* 背景改白，避免 contain 露餡時不好看 */
+        }
+        .lib-cover-link img { 
+            width: 100%; height: 100%; 
+            object-fit: contain; /* 改為 contain：完整顯示，不裁切 */
+            transition: transform 0.3s; 
+        }
+        .lib-card:hover .lib-cover-link img { transform: scale(1.05); }
+
+        /* 依類別設定頂部邊框顏色 */
+        .border-paper { border-top-color: var(--color-paper); }
+        .border-dvd { border-top-color: var(--color-dvd); }
+        .border-online { border-top-color: var(--color-online); }
+
+        .lib-info { flex-grow: 1; width: 100%; margin-bottom: 10px; }
+        .lib-title { 
+            font-size: 0.9rem; /* 字體再縮小一點 */
+            font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.3; 
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; 
+            min-height: 2.6em; 
+        }
+        .lib-meta { font-size: 0.75rem; color: #666; margin-bottom: 2px; background: #f8f9fa; padding: 2px; border-radius: 4px; }
+
+        /* 按鈕 */
+        .btn-check { 
+            display: block; width: 100%; color: white; text-decoration: none; 
+            padding: 5px 0; border-radius: 15px; font-size: 0.8rem; font-weight: bold; 
+            transition: opacity 0.2s; margin-top: auto;
+        }
+        .btn-check:hover { opacity: 0.9; }
+        .btn-paper { background-color: var(--color-paper); }
+        .btn-dvd { background-color: var(--color-dvd); }
+        .btn-online { background-color: var(--color-online); }
+
+        /* Footer */
+        footer { text-align: center; color: #777; padding: 30px 20px; font-size: 0.85rem; border-top: 1px solid #eee; margin-top: 40px; line-height: 1.6; }
+        
+        @media (max-width: 768px) { aside.sidebar { display: none; } main.main-content { margin-left: 0; padding: 15px; } .navbar-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <header class="top-navbar">
+        <a href="index.html" class="navbar-brand">
+            <img src="hsc-logo.png" alt="新生醫專圖書館 Logo" class="brand-logo">
+            <span class="brand-text">新生醫專圖書館 SEL 專區</span>
+        </a>
+        <nav class="navbar-links">
+            <a href="index.html">回首頁</a>
+            <a href="https://lib.hsc.edu.tw/" target="_blank">回圖書館首頁</a>
+            <a href="https://www.hsc.edu.tw/" target="_blank">回學校首頁</a>
+        </nav>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-block">
+            <div class="block-title"><i class="fa-solid fa-compass"></i> 快速導引</div>
+            <ul class="sidebar-menu">
+                <li><a href="sel-intro.html"><i class="fa-solid fa-star"></i> 認識 SEL</a></li>
+                <li><a href="sel-videos.html"><i class="fa-solid fa-play-circle"></i> 精選影音</a></li>
+                <li><a href="sel-resources.html"><i class="fa-solid fa-link"></i> 線上資源</a></li>
+                <li><a href="sel-ebooks.html"><i class="fa-solid fa-book"></i> 電子書推薦</a></li>
+                <li><a href="sel-library.html" class="active"><i class="fa-solid fa-book-bookmark"></i> 圖書館藏資源</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-block">
+            <div class="block-title"><i class="fa-solid fa-bullhorn"></i> 最新公告</div>
+            <ul class="news-list">
+                <li class="news-item"><span class="news-date">2026/01/08</span><a href="sel-videos.html" class="news-title">新增 6 部 SEL 精選影音，歡迎觀看！</a></li>
+                <li class="news-item"><span class="news-date">2026/01/07</span><a href="sel-resources.html" class="news-title">新增學術研究機構與推廣協會資源連結</a></li>
+                <li class="news-item"><span class="news-date">2026/01/01</span><span class="news-title">SEL 社會情緒學習專區正式上線！</span></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb"><a href="index.html">首頁</a> &gt; <span>圖書館藏資源</span></div>
+        <div class="page-header">
+            <h1><i class="fa-solid fa-book-bookmark" style="color:var(--primary-color); margin-right:10px;"></i>圖書館藏資源</h1>
+            <p>新生醫專圖書館實體館藏，包含紙本圖書、DVD 影音與公播平台資源。</p>
+        </div>
+
+        <h2 class="section-title title-paper"><i class="fa-solid fa-book"></i> SEL 紙本圖書</h2>
+        <div class="lib-grid">
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac?q=7%E9%80%B1%E5%9C%93%E5%A4%A2%E7%AD%86%E8%A8%98" target="_blank" class="lib-cover-link"><img src="paper1.jpg" alt="7週圓夢筆記"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac?q=7%E9%80%B1%E5%9C%93%E5%A4%A2%E7%AD%86%E8%A8%98" target="_blank" class="link-paper" style="color:var(--color-paper)">7週圓夢筆記</a></div>
+                    <div class="lib-meta">索書號: 192.1022 8373</div>
+                    <div class="lib-meta">條碼號: A088699</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac?q=7%E9%80%B1%E5%9C%93%E5%A4%A2%E7%AD%86%E8%A8%98" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search;jsessionid=4A016BE3EF3E5CF3BFC738FD22E0BC7E?q=%E4%B8%89%E9%9A%8E%E6%AE%B5%E5%BF%83%E7%90%86%E9%98%B2%E7%81%BD%E9%AB%94%E7%B3%BB&max=&view=CONTENT&level=all&material_type=all&location=" target="_blank" class="lib-cover-link"><img src="paper2.jpg" alt="三階段心理防災體系"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search;jsessionid=4A016BE3EF3E5CF3BFC738FD22E0BC7E?q=%E4%B8%89%E9%9A%8E%E6%AE%B5%E5%BF%83%E7%90%86%E9%98%B2%E7%81%BD%E9%AB%94%E7%B3%BB&max=&view=CONTENT&level=all&material_type=all&location=" target="_blank" class="link-paper" style="color:var(--color-paper)">三階段心理防災體系</a></div>
+                    <div class="lib-meta">索書號: 178.8 8847</div>
+                    <div class="lib-meta">條碼號: A091716</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search;jsessionid=4A016BE3EF3E5CF3BFC738FD22E0BC7E?q=%E4%B8%89%E9%9A%8E%E6%AE%B5%E5%BF%83%E7%90%86%E9%98%B2%E7%81%BD%E9%AB%94%E7%B3%BB&max=&view=CONTENT&level=all&material_type=all&location=" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%BF%83%E7%90%86%E5%AD%B8%E5%8E%9F%E4%BE%86%E9%80%99%E9%BA%BC%E6%9C%89%E8%B6%A3&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper3.jpg" alt="心理學原來這麼有趣"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%BF%83%E7%90%86%E5%AD%B8%E5%8E%9F%E4%BE%86%E9%80%99%E9%BA%BC%E6%9C%89%E8%B6%A3&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">心理學原來這麼有趣</a></div>
+                    <div class="lib-meta">索書號: 170 874</div>
+                    <div class="lib-meta">條碼號: A091506</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%BF%83%E7%90%86%E5%AD%B8%E5%8E%9F%E4%BE%86%E9%80%99%E9%BA%BC%E6%9C%89%E8%B6%A3&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%BF%83%E7%90%86%E9%86%AB%E5%B8%AB%E5%AA%BD%E5%AA%BD%E7%B5%A6%E5%A5%B3%E5%85%92%E7%9A%84%E4%BA%BA%E7%94%9F%E7%9C%9F%E5%BF%83%E8%A9%B1&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper4.jpg" alt="心理醫師媽媽給女兒的人生真心話"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%BF%83%E7%90%86%E9%86%AB%E5%B8%AB%E5%AA%BD%E5%AA%BD%E7%B5%A6%E5%A5%B3%E5%85%92%E7%9A%84%E4%BA%BA%E7%94%9F%E7%9C%9F%E5%BF%83%E8%A9%B1&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">心理醫師媽媽給女兒的人生真心話</a></div>
+                    <div class="lib-meta">索書號: 177.2 8557</div>
+                    <div class="lib-meta">條碼號: A092149</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%BF%83%E7%90%86%E9%86%AB%E5%B8%AB%E5%AA%BD%E5%AA%BD%E7%B5%A6%E5%A5%B3%E5%85%92%E7%9A%84%E4%BA%BA%E7%94%9F%E7%9C%9F%E5%BF%83%E8%A9%B1&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E4%B8%96%E9%96%93%E5%A4%A7%E9%9B%A8%E6%BB%82%E6%B2%B1&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper5.jpg" alt="世間大雨滂沱 你要藏好軟弱"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E4%B8%96%E9%96%93%E5%A4%A7%E9%9B%A8%E6%BB%82%E6%B2%B1&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">世間大雨滂沱 你要藏好軟弱</a></div>
+                    <div class="lib-meta">索書號: 191.9 8743:2</div>
+                    <div class="lib-meta">條碼號: A092249</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E4%B8%96%E9%96%93%E5%A4%A7%E9%9B%A8%E6%BB%82%E6%B2%B1&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E6%89%BE%E5%9B%9E%E6%84%9B%E8%88%87%E4%B8%8D%E6%84%9B%E7%9A%84%E5%BA%95%E6%B0%A3&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper6.jpg" alt="找回愛與不愛的底氣"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E6%89%BE%E5%9B%9E%E6%84%9B%E8%88%87%E4%B8%8D%E6%84%9B%E7%9A%84%E5%BA%95%E6%B0%A3&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">找回愛與不愛的底氣</a></div>
+                    <div class="lib-meta">索書號: 544.7 845</div>
+                    <div class="lib-meta">條碼號: A091998</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E6%89%BE%E5%9B%9E%E6%84%9B%E8%88%87%E4%B8%8D%E6%84%9B%E7%9A%84%E5%BA%95%E6%B0%A3&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%AE%88%E8%AD%B7%E6%88%91%E7%9A%84%E9%97%9C%E4%BF%82%E5%BF%83%E7%90%86%E5%AD%B8&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper7.jpg" alt="守護我的關係心理學"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%AE%88%E8%AD%B7%E6%88%91%E7%9A%84%E9%97%9C%E4%BF%82%E5%BF%83%E7%90%86%E5%AD%B8&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">守護我的關係心理學</a></div>
+                    <div class="lib-meta">索書號: 178.8 87</div>
+                    <div class="lib-meta">條碼號: A092385</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E5%AE%88%E8%AD%B7%E6%88%91%E7%9A%84%E9%97%9C%E4%BF%82%E5%BF%83%E7%90%86%E5%AD%B8&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E7%A4%BE%E4%BA%A4%E7%84%A6%E6%85%AECBT%E7%99%82%E6%B3%95&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper8.jpg" alt="社交焦慮CBT療法"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E7%A4%BE%E4%BA%A4%E7%84%A6%E6%85%AECBT%E7%99%82%E6%B3%95&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">社交焦慮CBT療法</a></div>
+                    <div class="lib-meta">索書號: 178.8 8478</div>
+                    <div class="lib-meta">條碼號: A092254</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E7%A4%BE%E4%BA%A4%E7%84%A6%E6%85%AECBT%E7%99%82%E6%B3%95&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E8%B5%B0%E9%80%B2%E5%AD%A9%E5%AD%90%E7%9A%84%E5%85%A7%E5%BF%83&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper9.jpg" alt="走進孩子的內心"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E8%B5%B0%E9%80%B2%E5%AD%A9%E5%AD%90%E7%9A%84%E5%85%A7%E5%BF%83&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">走進孩子的內心</a></div>
+                    <div class="lib-meta">索書號: 178.807 8554</div>
+                    <div class="lib-meta">條碼號: A091585</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E8%B5%B0%E9%80%B2%E5%AD%A9%E5%AD%90%E7%9A%84%E5%85%A7%E5%BF%83&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+            <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E6%81%86%E6%BA%AB%E9%97%9C%E4%BF%82&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper10.jpg" alt="恆溫關係"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=%E6%81%86%E6%BA%AB%E9%97%9C%E4%BF%82&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">恆溫關係</a></div>
+                    <div class="lib-meta">索書號: 544.7 8358</div>
+                    <div class="lib-meta">條碼號: A092485</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=%E6%81%86%E6%BA%AB%E9%97%9C%E4%BF%82&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+             <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=A091543&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper11.jpg" alt="剛剛好就是最好"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=A091543&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">剛剛好就是最好</a></div>
+                    <div class="lib-meta">索書號: 191.9 8569-3</div>
+                    <div class="lib-meta">條碼號: A091543</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=A091543&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+             <div class="lib-card border-paper">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=A092167&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="paper12.jpg" alt="從叛逆到共鳴"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=A092167&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-paper" style="color:var(--color-paper)">從叛逆到共鳴</a></div>
+                    <div class="lib-meta">索書號: 528.2 8447</div>
+                    <div class="lib-meta">條碼號: A092167</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=A092167&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-paper">查看館藏</a>
+            </div>
+        </div>
+
+        <h2 class="section-title title-dvd"><i class="fa-solid fa-compact-disc"></i> SEL 影音光碟 (DVD)</h2>
+        <div class="lib-grid">
+            <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V004162&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd1.jpg" alt="情緒密碼"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V004162&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">情緒密碼</a></div>
+                    <div class="lib-meta">索書號: 176.5 8352</div>
+                    <div class="lib-meta">條碼號: V004162...</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V004162&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+            <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V009231&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd2.jpg" alt="情緒的奧妙"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V009231&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">情緒的奧妙</a></div>
+                    <div class="lib-meta">索書號: 176.52 844</div>
+                    <div class="lib-meta">條碼號: V009231</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V009231&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V009790&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd3.jpg" alt="心理健康與壓力"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V009790&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">心理健康與壓力</a></div>
+                    <div class="lib-meta">索書號: 173 8249</div>
+                    <div class="lib-meta">條碼號: V009790...</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V009790&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V002917&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd4.jpg" alt="深夜加油站遇見蘇格拉底"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V002917&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">深夜加油站遇見蘇格拉底</a></div>
+                    <div class="lib-meta">索書號: 987.83 8638</div>
+                    <div class="lib-meta">條碼號: V002917</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V002917&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V010059&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd5.jpg" alt="心智的運作情緒"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V010059&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">心智的運作情緒</a></div>
+                    <div class="lib-meta">索書號: 176.5 8265</div>
+                    <div class="lib-meta">條碼號: V010059...</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V010059&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V005282&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd6.jpg" alt="真善美"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V005282&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">真善美</a></div>
+                    <div class="lib-meta">索書號: 987.83 865 2010</div>
+                    <div class="lib-meta">條碼號: V005282</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V005282&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V008791&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd7.jpg" alt="人生無限露營車"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V008791&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">人生無限露營車</a></div>
+                    <div class="lib-meta">索書號: 987.83 8635:2 2018</div>
+                    <div class="lib-meta">條碼號: V008791</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V008791&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V005320&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd8.jpg" alt="貧民百萬富翁"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V005320&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">貧民百萬富翁</a></div>
+                    <div class="lib-meta">索書號: 987.83 878</div>
+                    <div class="lib-meta">條碼號: V005320-V005321</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V005320&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=+V007767&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd9.jpg" alt="美味關係"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=+V007767&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">美味關係</a></div>
+                    <div class="lib-meta">索書號: 987.83 8873 2015</div>
+                    <div class="lib-meta">條碼號: V007767</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=+V007767&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V001520&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd10.jpg" alt="天使的約定"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V001520&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">天使的約定</a></div>
+                    <div class="lib-meta">索書號: 987.83 8795 2007</div>
+                    <div class="lib-meta">條碼號: V001520</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V001520&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V007797&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd11.jpg" alt="飛躍奇蹟"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V007797&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">飛躍奇蹟</a></div>
+                    <div class="lib-meta">索書號: 987.83 8784 2016</div>
+                    <div class="lib-meta">條碼號: V007797</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V007797&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+             <div class="lib-card border-dvd">
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V001319&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="lib-cover-link"><img src="dvd12.jpg" alt="當幸福來敲門"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="http://163.25.34.60:8080/toread/opac/search?q=V001319&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="link-dvd">當幸福來敲門</a></div>
+                    <div class="lib-meta">索書號: 987.83 8843 2007</div>
+                    <div class="lib-meta">條碼號: V001319</div>
+                </div>
+                <a href="http://163.25.34.60:8080/toread/opac/search?q=V001319&max=0&view=CONTENT&level=all&material_type=all&location=0" target="_blank" class="btn-check btn-dvd">查看館藏</a>
+            </div>
+        </div>
+
+        <h2 class="section-title title-online"><i class="fa-solid fa-cloud"></i> SEL 線上影音平台</h2>
+        <div class="lib-grid">
+            <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/d8cec786-b7e7-4751-ada9-215dfb8e7f85" target="_blank" class="lib-cover-link"><img src="online1.jpg" alt="亞斯小子"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/d8cec786-b7e7-4751-ada9-215dfb8e7f85" target="_blank" class="link-online">亞斯小子</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/d8cec786-b7e7-4751-ada9-215dfb8e7f85" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+            <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/5eff3be4-41af-40ba-8024-e38e03bb23fd" target="_blank" class="lib-cover-link"><img src="online2.jpg" alt="蝦米小白鯨"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/5eff3be4-41af-40ba-8024-e38e03bb23fd" target="_blank" class="link-online">蝦米小白鯨</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/5eff3be4-41af-40ba-8024-e38e03bb23fd" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/e5fafdf4-4e0e-40f6-88e1-8faa89493b4d" target="_blank" class="lib-cover-link"><img src="online3.jpg" alt="人生轉運站"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/e5fafdf4-4e0e-40f6-88e1-8faa89493b4d" target="_blank" class="link-online">人生轉運站</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/e5fafdf4-4e0e-40f6-88e1-8faa89493b4d" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/b61caca8-057e-4028-8a4e-44bc539373ec" target="_blank" class="lib-cover-link"><img src="online4.jpg" alt="打開名為家的門"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/b61caca8-057e-4028-8a4e-44bc539373ec" target="_blank" class="link-online">打開名為家的門</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/b61caca8-057e-4028-8a4e-44bc539373ec" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/2de198f6-1135-481f-9070-f16c6f1d9b90" target="_blank" class="lib-cover-link"><img src="online5.jpg" alt="總是有個人在愛你"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/2de198f6-1135-481f-9070-f16c6f1d9b90" target="_blank" class="link-online">總是有個人在愛你</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/2de198f6-1135-481f-9070-f16c6f1d9b90" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/fb70e33a-24c5-4cd2-9ec5-7fd1d47c3dbe" target="_blank" class="lib-cover-link"><img src="online6.jpg" alt="我的冠軍教練"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/fb70e33a-24c5-4cd2-9ec5-7fd1d47c3dbe" target="_blank" class="link-online">我的冠軍教練</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/fb70e33a-24c5-4cd2-9ec5-7fd1d47c3dbe" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/90349cfb-989a-4997-837e-7df0a268c755" target="_blank" class="lib-cover-link"><img src="online7.jpg" alt="致親愛的孤獨者"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/90349cfb-989a-4997-837e-7df0a268c755" target="_blank" class="link-online">致親愛的孤獨者</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/90349cfb-989a-4997-837e-7df0a268c755" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/4b320148-70e7-4f89-93f4-dad3c304b694" target="_blank" class="lib-cover-link"><img src="online8.jpg" alt="最是橙黃橘綠時"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/4b320148-70e7-4f89-93f4-dad3c304b694" target="_blank" class="link-online">最是橙黃橘綠時</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/4b320148-70e7-4f89-93f4-dad3c304b694" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/8052ba61-9892-427b-a35f-557322e742ae" target="_blank" class="lib-cover-link"><img src="online9.jpg" alt="一路上有妳"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/8052ba61-9892-427b-a35f-557322e742ae" target="_blank" class="link-online">一路上有妳</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/8052ba61-9892-427b-a35f-557322e742ae" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/b888372b-25e8-423a-9d5b-92e10ff8b1d5" target="_blank" class="lib-cover-link"><img src="online10.jpg" alt="金曲快送有限公司"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/b888372b-25e8-423a-9d5b-92e10ff8b1d5" target="_blank" class="link-online">金曲快送有限公司</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/b888372b-25e8-423a-9d5b-92e10ff8b1d5" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/cd13df1f-babb-4dc3-886e-3bb1931c0584" target="_blank" class="lib-cover-link"><img src="online11.jpg" alt="露西亞的願望"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/cd13df1f-babb-4dc3-886e-3bb1931c0584" target="_blank" class="link-online">露西亞的願望</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/cd13df1f-babb-4dc3-886e-3bb1931c0584" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+             <div class="lib-card border-online">
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/0e8dc450-de01-4fe1-80e3-d71ace2ed2bb" target="_blank" class="lib-cover-link"><img src="online12.jpg" alt="野夏天"></a>
+                <div class="lib-info">
+                    <div class="lib-title"><a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/0e8dc450-de01-4fe1-80e3-d71ace2ed2bb" target="_blank" class="link-online">野夏天</a></div>
+                    <div class="lib-meta">來源: 教室電影公播大平台</div>
+                </div>
+                <a href="https://hsc.app.visionmedia.com.tw/video/detail/trailer/0e8dc450-de01-4fe1-80e3-d71ace2ed2bb" target="_blank" class="btn-check btn-online">前往觀看</a>
+            </div>
+        </div>
+
+        <footer>
+            Copyright © 新生學校財團法人新生醫護管理專科學校<br>
+            325桃園市龍潭區中豐路高平段418號<br>
+            TEL: (03)411-7578 轉 250 & 251 | E-Mail: lib@hsc.edu.tw
+        </footer>
+
+    </main>
+
+</body>
+</html>
