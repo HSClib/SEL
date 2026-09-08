@@ -125,10 +125,19 @@
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         }
 
+        .legacy-ebook-grid { display: none; }
+
+        .hyread-ebook-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
         @media (min-width: 1200px) {
             .ebook-grid {
                 grid-template-columns: repeat(5, 1fr);
             }
+            .hyread-ebook-grid { grid-template-columns: repeat(6, 1fr); }
         }
 
         /* --- 電子書卡片樣式 --- */
@@ -166,6 +175,36 @@
             height: auto;
             display: block;
             transition: transform 0.3s;
+        }
+
+        .hyread-ebook-grid .ebook-card { padding: 12px; }
+        .hyread-ebook-grid .ebook-cover-link {
+            width: 130px;
+            max-width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .ebook-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 32px 0 8px;
+        }
+        .ebook-pagination button {
+            border: 1px solid var(--primary-color);
+            background: #fff;
+            color: var(--primary-color);
+            border-radius: 18px;
+            min-width: 38px;
+            padding: 7px 12px;
+            font: inherit;
+            cursor: pointer;
+        }
+        .ebook-pagination button:hover,
+        .ebook-pagination button[aria-current="page"] {
+            background: var(--primary-color);
+            color: #fff;
         }
         
         .ebook-card:hover .ebook-cover-link img {
@@ -304,10 +343,10 @@
 
         <div class="page-header">
             <h1><i class="fa-solid fa-book-open" style="color:var(--primary-color); margin-right:10px;"></i>SEL 主題電子書</h1>
-            <p>新生醫專圖書館精選 UDN 讀書館藏，歡迎師生線上借閱。</p>
+            <p>新生醫專圖書館精選 HyRead 館藏，歡迎師生線上借閱。</p>
         </div>
 
-        <div class="ebook-grid">
+        <div class="ebook-grid legacy-ebook-grid">
             
             <div class="ebook-card">
                 <a href="https://reading.udn.com/udnlib/hsc/B/245541" target="_blank" class="ebook-cover-link">
@@ -536,6 +575,9 @@
 
         </div>
 
+        <div id="hyread-ebook-grid" class="hyread-ebook-grid" aria-live="polite"></div>
+        <nav id="ebook-pagination" class="ebook-pagination" aria-label="電子書分頁"></nav>
+
         <footer>
             Copyright © 新生學校財團法人新生醫護管理專科學校<br>
             325桃園市龍潭區中豐路高平段418號<br>
@@ -544,5 +586,41 @@
 
     </main>
 
+    <script>
+        const hyreadBooks = [
+          ['467440','467440978626777601820252415010957.jpg'],['418706','418706978626345591720252709110125.jpg'],['436889','436889978626764126220254110010456.jpg'],['453906','453906978626764157620250309100655.jpg'],['423572','423572978626419212520252418030244.jpg'],['462036','462036978626419594220252431100726.jpg'],['459147','459147978626989128320251708100759.jpg'],['418654','418654978626732199720251406010109.jpg'],['415956','415956978986136723120245526021250.jpg'],['463513','463513978626409125120251814100815.jpg'],['421318','421318978626417106920251220090100.jpg'],['463508','463508978626760461820250814100822.jpg'],['416950','416950978626744651520240818011232.jpg'],['470109','470109978626760494620254502101016.jpg'],['444276','444276978626764136120250506100557.jpg'],['473018','473018978626767518220254927091035.jpg'],['417581','417581978626369251020245125021246.jpg'],['474290','474290978626764357020252407011128.jpg'],['471534','471534978626778505820253416011000.jpg'],['466500','466500978626762435720253605010946.jpg'],['452527','452527978626993905320252927110553.jpg'],['481314','481314978626419953720250026101232.jpg'],['474293','474293978626762444920252907011100.jpg'],['477581','477581978626744781920250510021249.jpg'],['464254','464254978626764347120254626010855.jpg'],['468920','468920978626702660120254622020905.jpg'],['431102','431102978626764309920255727080324.jpg'],['464047','464047978626753098620251926010836.jpg'],['482683','482683978626419965020262609010135.jpg'],['461392','461392978626981233220252828030717.jpg'],['482685','482685978626444004220262909010121.jpg'],['462901','462901978626764336520251007010845.jpg'],['468942','468942978626764350120252619010928.jpg'],['452524','452524978626764317420253627020500.jpg'],['436535','436535978957710944620251209020419.jpg']
+        ];
+        const bookInfo = {
+          '467440':['這本書比治療還便宜！','莉茲．凱莉；呂玉嬋譯'], '418706':['情緒心理學','蔡秀玲、林應群、林烝增'],
+          '436889':['這個世界需要敏感的你','蘭卡．布雷茲；呂玉嬋譯'], '453906':['核心思維，喚醒你的內在力量','池羅英；林育帆譯'],
+          '423572':['你不是沒時間，而是沒精力！','唐希媛'], '462036':['你的隨身心理師','安妮．齊默爾曼；張馨方譯'],
+          '459147':['向下讚美','中村早岐子；吳怡文譯'], '418654':['矽谷流鋼鐵般的自我肯定感','宮崎直子；林姿呈譯'],
+          '415956':['壞話筆記的魔法','石川清美；陳靖涵譯'], '463513':['重塑迷走神經復原力','安娜．佛古森；蕭寶森譯'],
+          '421318':['凝視焦慮','大衛．羅斯馬林；謝凱蒂譯'], '463508':['童年情緒教養','嚴藝家'],
+          '416950':['拯救被情感淹沒的你','倉成宣佳；楊鈺儀譯'], '470109':['情緒自癒','蓋．溫奇；祁怡瑋譯'],
+          '444276':['悲傷練習','帕蜜拉．布萊爾、布蕾迪．漢森；王莉雯譯'], '473018':['小小孩，大情緒','根．莫爾；陳莉苓譯'],
+          '417581':['情緒教室','謝名娟、程峻、李建翰等'], '474290':['別再裝乖，你要活得有個性','托馬．丹桑布；張喬玟譯'],
+          '471534':['正確飲食，平衡荷爾蒙','皮帕．坎貝爾；洪禎璐譯'], '466500':['技術分析大師的心理操盤術','馬丁．普林；呂佩憶譯'],
+          '452527':['情緒自救','加倉井紗央里；羅淑慧譯'], '481314':['情緒界線','吳娟瑜'],
+          '474293':['鬆綁情緒內耗的轉念練習','內田舞；賴惠鈴譯'], '477581':['社會情緒學習導論','李佳宸、陳學志、吳怡萱等'],
+          '464254':['停止情緒內耗的人際C位','思考系OL；羅淑慧譯'], '468920':['解構情緒操控','文嶠'],
+          '431102':['遠離！傷人傷己的情緒風暴','水島廣子；林美琪譯'], '464047':['走出羞愧','寇特．湯普森；謝佩知譯'],
+          '482683':['鬆開糾結，停止內耗','寢子；呂盈璇譯'], '461392':['無聊、空虛、絕望……','陶國璋'],
+          '482685':['給總是微笑卻很累的你','周小鵬、陳照瑞'], '462901':['佛陀智慧的生氣劍','草薙龍瞬；駱香雅譯'],
+          '468942':['面對情緒攻擊的勇氣','水島廣子；張嘉芬譯'], '452524':['淬煉卡內基人生關鍵智慧','金範俊；馮燕珠譯'],
+          '436535':['都是為你好？','文心']
+        };
+        const perPage = 30, grid = document.getElementById('hyread-ebook-grid'), pages = document.getElementById('ebook-pagination');
+        function renderEbooks(page) {
+            grid.innerHTML = hyreadBooks.slice((page - 1) * perPage, page * perPage).map(([id, cover]) => {
+                const url = `https://hsc.ebook.hyread.com.tw/bookDetail.jsp?id=${id}`;
+                const [title, author] = bookInfo[id];
+                return `<article class="ebook-card"><a class="ebook-cover-link" href="${url}" target="_blank" rel="noopener"><img src="https://webcdn2.ebook.hyread.com.tw/bookcover/${cover}" alt="${title} 封面"></a><div class="ebook-info"><div class="ebook-title"><a href="${url}" target="_blank" rel="noopener">${title}</a></div><div class="ebook-author">作者：${author}</div></div><a class="btn-read" href="${url}" target="_blank" rel="noopener"><i class="fa-solid fa-book-reader"></i> 立即借閱</a></article>`;
+            }).join('');
+            pages.innerHTML = [1, 2].map(n => `<button type="button" data-page="${n}"${page === n ? ' aria-current="page"' : ''}>${n}</button>`).join('');
+            pages.querySelectorAll('button').forEach(button => button.onclick = () => renderEbooks(Number(button.dataset.page)));
+        }
+        renderEbooks(1);
+    </script>
 </body>
 </html>
